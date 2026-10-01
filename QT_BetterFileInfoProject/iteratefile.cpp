@@ -2,6 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <QDebug>
+#include <QTreeWidgetItem>
 
 IterateFile::IterateFile()
 {
@@ -18,7 +19,7 @@ tuple<double, int> IterateFile::convertToDouble(const uintmax_t& fileSize) {
     return make_tuple(mantissa, index);
 }
 
-string IterateFile::convertToString(tuple<double, int> inTuple) {
+QString IterateFile::convertToString(tuple<double, int> inTuple) {
     const string types = "BKMGTPE";
     double mantissa = get<0>(inTuple);
     int index = get<1>(inTuple);
@@ -30,7 +31,8 @@ string IterateFile::convertToString(tuple<double, int> inTuple) {
         result += "B";
     }
 
-    return result;
+    QString resultC_STR = QString::fromStdString(result);
+    return resultC_STR;
 }
 
 void IterateFile::tryCatch(const string& path, function<void()> func) {
@@ -65,9 +67,9 @@ bool sortEntries(entryObj const& lhs, entryObj const& rhs) {
     return lhs.size > rhs.size;
 }
 
-void IterateFile::iteratePath(string inPath) {
+vector<entryObj> IterateFile::iteratePath(string inPath) {
     string path = inPath;
-    uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;
+    //uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;
     vector<entryObj> resultsVec;
 
     filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
@@ -86,13 +88,5 @@ void IterateFile::iteratePath(string inPath) {
 
     sort(resultsVec.begin(), resultsVec.end(), sortEntries); // Sort the list of folder sizes from the largest to smallest
 
-    for (auto& entry : resultsVec)
-        qDebug() << "C++ Style Debug Message";
-        //cout << entry.path << " - " << convertToString(convertToDouble(entry.size)) << endl;
-
-    string targetFolderSizeStr = convertToString(convertToDouble(targetFolderSize));
-    string totalUsedSpaceStr = convertToString(convertToDouble(totalSpaceTaken));
-    //cout << endl;
-    //cout << "Used space in the target folder: " << convertToString(convertToDouble(targetFolderSize)) << endl;
-    //cout << "Total used space in " << path << " - " << convertToString(convertToDouble(totalSpaceTaken)) << endl;
+    return resultsVec;
 }

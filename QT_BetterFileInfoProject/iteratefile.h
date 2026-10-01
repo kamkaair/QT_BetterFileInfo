@@ -7,6 +7,8 @@
 #include <functional>
 #include <vector>
 
+#include <QTreeWidget>
+
 using namespace std;
 
 struct entryObj {
@@ -19,15 +21,19 @@ class IterateFile
 public:
     IterateFile();
 
-    void iteratePath(string inPath);
+    vector<entryObj> iteratePath(string inPath);
+    tuple<double, int> convertToDouble(const uintmax_t& fileSize);
+    QString convertToString(tuple<double, int> inTuple);
+
+    uintmax_t getTotalSpaceTaken() {return totalSpaceTaken;}
+    uintmax_t getTargetFolderSize() {return targetFolderSize;}
 
 private:
-    tuple<double, int> convertToDouble(const uintmax_t& fileSize);
-    string convertToString(tuple<double, int> inTuple);
     void tryCatch(const string& path, function<void()> func);
     uintmax_t iterateDirectory(const string& path);
 
     const bool enableWarnigns = false;
+    uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;
 };
 
 #endif // ITERATEFILE_H
