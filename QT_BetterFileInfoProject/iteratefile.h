@@ -27,6 +27,10 @@ public:
 
     uintmax_t getTotalSpaceTaken() {return totalSpaceTaken;}
     uintmax_t getTargetFolderSize() {return targetFolderSize;}
+    void clearIterations() {
+        totalSpaceTaken = 0;
+        targetFolderSize = 0;
+    }
 
 private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
