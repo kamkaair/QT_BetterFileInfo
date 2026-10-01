@@ -13,7 +13,7 @@ using namespace std;
 
 struct entryObj {
     uintmax_t size;
-    string path;
+    wstring path;
 };
 
 class IterateFile
@@ -21,7 +21,7 @@ class IterateFile
 public:
     IterateFile();
 
-    vector<entryObj> iteratePath(string inPath);
+    vector<entryObj> iteratePath(const filesystem::path pathSrc);
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
     QString convertToString(tuple<double, int> inTuple);
 
@@ -29,8 +29,8 @@ public:
     uintmax_t getTargetFolderSize() {return targetFolderSize;}
 
 private:
-    void tryCatch(const string& path, function<void()> func);
-    uintmax_t iterateDirectory(const string& path);
+    void tryCatch(const filesystem::path& path, function<void()> func, string err);
+    uintmax_t iterateDirectory(const filesystem::path& path);
 
     const bool enableWarnigns = false;
     uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;

@@ -9,11 +9,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     it = new IterateFile;
-    vector<entryObj> entries = it->iteratePath("C:/Users/Altti/Documents/FantaInMySystem/assets/textures");
+    //vector<entryObj> entries = it->iteratePath("C:/Users/Altti/AppData/Local/QML-Task/cache/qmlcache");
+    vector<entryObj> entries = it->iteratePath("C:/Users/Altti/Documents/MathProgramming/Mine/alttiairaksinen/Submissions");
+
     for (auto& entry : entries) {
         QTreeWidgetItem* newItem = new QTreeWidgetItem(ui->folderTree);
-        newItem->setText(0, tr((entry.path).c_str()));
-        newItem->setText(1, it->convertToString(it->convertToDouble(entry.size)));
+        newItem->setText(0, it->convertToString(it->convertToDouble(entry.size)));
+        newItem->setText(1, QString::fromStdWString(entry.path));
     }
 
     QString text1 = it->convertToString(it->convertToDouble(it->getTargetFolderSize()));
