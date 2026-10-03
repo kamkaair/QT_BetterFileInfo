@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QDebug>
-#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,8 +7,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     it = new IterateFile;
+    it->setTargetTree(ui->folderTree);
 
-    QString defaultPath = "C:/Users/Altti/Documents/GrafiikkaMoottori";
+    QString defaultPath = "C:/Users/Altti/Downloads/04_GOAP 2/04_GOAP";
     ui->textEdit->setText(defaultPath);
 }
 
@@ -30,20 +29,17 @@ void MainWindow::on_pushButton_clicked()
 {
     clearIterationUI();
 
-    //C:\Users\Altti\AppData
-    //C:/Users/Altti/Documents/MathProgramming/Mine/alttiairaksinen/build
     std::string pathstd = ui->textEdit->toPlainText().toStdString();
     std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
-    //QDebug << pathstd;
 
-    vector<entryObj> entries = it->iteratePath(pathstd);
-    //vector<entryObj> entries = it->iteratePath("C:/Users/Altti/Documents/MathProgramming/Mine/alttiairaksinen/Submissions");
+    //vector<entryObj> entries = it->iteratePath(pathstd);
+    it->iteratePath(pathstd);
 
-    for (auto& entry : entries) {
+    /*for (auto& entry : entries) {
         QTreeWidgetItem* newItem = new QTreeWidgetItem(ui->folderTree);
         newItem->setText(0, it->convertToString(it->convertToDouble(entry.size)));
         newItem->setText(1, QString::fromStdWString(entry.path));
-    }
+    }*/
 
     QString text1 = it->convertToString(it->convertToDouble(it->getTargetFolderSize()));
     QString text2 = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));

@@ -21,12 +21,13 @@ class IterateFile
 public:
     IterateFile();
 
-    vector<entryObj> iteratePath(const filesystem::path pathSrc);
+    void iteratePath(const filesystem::path pathSrc);
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
     QString convertToString(tuple<double, int> inTuple);
 
     uintmax_t getTotalSpaceTaken() {return totalSpaceTaken;}
     uintmax_t getTargetFolderSize() {return targetFolderSize;}
+    void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
     void clearIterations() {
         totalSpaceTaken = 0;
         targetFolderSize = 0;
@@ -34,7 +35,12 @@ public:
 
 private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
-    uintmax_t iterateDirectory(const filesystem::path& path);
+    uintmax_t iterateDirectory(const filesystem::path& path, QTreeWidgetItem* parentItem);
+
+    QTreeWidgetItem* addTreeRoot();
+    QTreeWidgetItem* addTreeChild(QTreeWidgetItem* treeItem);
+    void modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem);
+    QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;
     uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;

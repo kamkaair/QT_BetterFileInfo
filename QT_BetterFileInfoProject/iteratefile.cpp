@@ -9,6 +9,21 @@ IterateFile::IterateFile()
 
 }
 
+QTreeWidgetItem* IterateFile::addTreeRoot() {
+    QTreeWidgetItem* newItem = new QTreeWidgetItem(widgetTree);
+
+    return newItem;
+}
+QTreeWidgetItem* IterateFile::addTreeChild(QTreeWidgetItem* treeItem) {
+    QTreeWidgetItem* newItem = new QTreeWidgetItem(treeItem);
+    treeItem->addChild(newItem);
+    return newItem;
+}
+void IterateFile::modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem) {
+    treeItem->setText(0, convertToString(convertToDouble(obj.size)));
+    treeItem->setText(1, QString::fromStdWString(obj.path));
+}
+
 tuple<double, int> IterateFile::convertToDouble(const uintmax_t& fileSize) {
     double mantissa = fileSize;
     int index = 0;
@@ -45,21 +60,32 @@ void IterateFile::tryCatch(const filesystem::path& path, function<void()> func, 
     }
 }
 
-uintmax_t IterateFile::iterateDirectory(const filesystem::path& path) {
+uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidgetItem* parentItem) {
     uintmax_t totalResult = 0;
 
     tryCatch(path, [&] {
-            filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
-            for (filesystem::directory_entry const& entry : filesystem::directory_iterator(path, settings)) {
-                tryCatch(path, [&]() {
-                    if (entry.is_regular_file()) {
-                        totalResult += entry.file_size();
-                    }
-                    else if (entry.is_directory()) {
-                        totalResult += iterateDirectory(entry.path()); // Later on, if the child dir/files stored, then either store them as wstrings or fs paths!
-                    }
-                }, "SKIPPED: unreadable file: ");
-            }}, "SKIPPED: unreadable folder: ");
+        filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
+        for (filesystem::directory_entry const& entry : filesystem::directory_iterator(path, settings)) {
+            tryCatch(path, [&]() {
+                if (entry.is_regular_file()) {
+                    totalResult += entry.file_size();
+
+                    QTreeWidgetItem* newItem = addTreeChild(parentItem);
+                    entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
+                    modifyTreeItem(newEntry, newItem);
+                }
+                else if (entry.is_directory()) {
+                    QTreeWidgetItem* newItem = addTreeChild(parentItem);
+
+                    uintmax_t dirTotal = 0;
+                    dirTotal += iterateDirectory(entry.path(), newItem); // Later on, if the child dir/files stored, then either store them as wstrings or fs paths!
+                    totalResult += dirTotal;
+
+                    entryObj newEntry = entryObj({ dirTotal, entry.path().wstring() });
+                    modifyTreeItem(newEntry, newItem);
+                }
+            }, "SKIPPED: unreadable file: ");
+    }}, "SKIPPED: unreadable folder: ");
 
     return totalResult;
 }
@@ -68,26 +94,31 @@ bool sortEntries(entryObj const& lhs, entryObj const& rhs) {
     return lhs.size > rhs.size;
 }
 
-vector<entryObj> IterateFile::iteratePath(const filesystem::path pathSrc) {
-    vector<entryObj> resultsVec;
-
+void IterateFile::iteratePath(const filesystem::path pathSrc) {
     tryCatch(pathSrc, [&] {
-            filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
-            for (filesystem::directory_entry const& entry : filesystem::directory_iterator(pathSrc, settings)) {
-                tryCatch(pathSrc, [&] {
-                    if (entry.is_regular_file()) {
-                        targetFolderSize += entry.file_size();
-                    }
-                    else if (entry.is_directory()) {
-                        uintmax_t dirTotal = iterateDirectory(entry.path());
-                        totalSpaceTaken += dirTotal;
-                        resultsVec.push_back(entryObj({ dirTotal, entry.path().wstring() })); // Used wstring, since some paths might have dubious characters. Should be able to handle those (test case had chinese letters)
-                    }
-                }, "SKIPPED: unreadable file: ");
-            }
-        }, "SKIPPED: unreadable folder: ");
+        filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
+        for (filesystem::directory_entry const& entry : filesystem::directory_iterator(pathSrc, settings)) {
+            tryCatch(pathSrc, [&] {
+                if (entry.is_regular_file()) {
+                    targetFolderSize += entry.file_size();
+                    QTreeWidgetItem* newItem = addTreeRoot();
+                    entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
+                    modifyTreeItem(newEntry, newItem);
+                }
+                else if (entry.is_directory()) {
+                    QTreeWidgetItem* newItem = addTreeRoot();
 
-    sort(resultsVec.begin(), resultsVec.end(), sortEntries); // Sort the list of folder sizes from the largest to smallest
+                    uintmax_t dirTotal = 0;
+                    dirTotal = iterateDirectory(entry.path(), newItem);
 
-    return resultsVec;
+                    entryObj newEntry = entryObj({ dirTotal, entry.path().wstring() });
+                    modifyTreeItem(newEntry, newItem);
+                }
+            }, "SKIPPED: unreadable file: ");
+        }
+    }, "SKIPPED: unreadable folder: ");
+
+    //sort(resultsVec.begin(), resultsVec.end(), sortEntries); // Sort the list of folder sizes from the largest to smallest
+
+    //return resultsVec;
 }
