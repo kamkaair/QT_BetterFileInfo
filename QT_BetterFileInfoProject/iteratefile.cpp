@@ -1,13 +1,10 @@
 #include "iteratefile.h"
 #include <cmath>
 #include <algorithm>
-#include <QDebug>
-#include <QTreeWidgetItem>
+#include <iostream>
+#include <functional>
 
-IterateFile::IterateFile()
-{
-
-}
+IterateFile::IterateFile() {}
 
 QTreeWidgetItem* IterateFile::addTreeRoot() {
     QTreeWidgetItem* newItem = new QTreeWidgetItem(widgetTree);
@@ -100,7 +97,7 @@ void IterateFile::iteratePath(const filesystem::path pathSrc) {
         for (filesystem::directory_entry const& entry : filesystem::directory_iterator(pathSrc, settings)) {
             tryCatch(pathSrc, [&] {
                 if (entry.is_regular_file()) {
-                    targetFolderSize += entry.file_size();
+                    totalSpaceTaken += entry.file_size();
                     QTreeWidgetItem* newItem = addTreeRoot();
                     entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
                     modifyTreeItem(newEntry, newItem);
@@ -110,6 +107,7 @@ void IterateFile::iteratePath(const filesystem::path pathSrc) {
 
                     uintmax_t dirTotal = 0;
                     dirTotal = iterateDirectory(entry.path(), newItem);
+                    totalSpaceTaken += dirTotal;
 
                     entryObj newEntry = entryObj({ dirTotal, entry.path().wstring() });
                     modifyTreeItem(newEntry, newItem);
@@ -118,7 +116,5 @@ void IterateFile::iteratePath(const filesystem::path pathSrc) {
         }
     }, "SKIPPED: unreadable folder: ");
 
-    //sort(resultsVec.begin(), resultsVec.end(), sortEntries); // Sort the list of folder sizes from the largest to smallest
-
-    //return resultsVec;
+    widgetTree->sortByColumn(0, Qt::AscendingOrder);
 }

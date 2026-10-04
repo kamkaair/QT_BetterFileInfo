@@ -1,12 +1,9 @@
 #ifndef ITERATEFILE_H
 #define ITERATEFILE_H
 
-#include <iostream>
 #include <filesystem>
 #include <string>
-#include <functional>
 #include <vector>
-
 #include <QTreeWidget>
 
 using namespace std;
@@ -26,11 +23,9 @@ public:
     QString convertToString(tuple<double, int> inTuple);
 
     uintmax_t getTotalSpaceTaken() {return totalSpaceTaken;}
-    uintmax_t getTargetFolderSize() {return targetFolderSize;}
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
     void clearIterations() {
         totalSpaceTaken = 0;
-        targetFolderSize = 0;
     }
 
 private:
@@ -43,7 +38,7 @@ private:
     QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;
-    uintmax_t totalSpaceTaken = 0, targetFolderSize = 0;
+    uintmax_t totalSpaceTaken = 0;
 };
 
 #endif // ITERATEFILE_H
