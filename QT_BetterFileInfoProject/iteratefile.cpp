@@ -6,15 +6,13 @@
 
 IterateFile::IterateFile() {}
 
-QTreeWidgetItem* IterateFile::addTreeRoot() {
-    QTreeWidgetItem* newItem = new QTreeWidgetItem(widgetTree);
-
-    return newItem;
-}
-QTreeWidgetItem* IterateFile::addTreeChild(QTreeWidgetItem* treeItem) {
-    QTreeWidgetItem* newItem = new QTreeWidgetItem(treeItem);
-    treeItem->addChild(newItem);
-    return newItem;
+QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {
+    QTreeWidgetItem* newTreeItem = 0;
+    if(treeItem == 0) {
+        return newTreeItem = new QTreeWidgetItem(widgetTree);
+    }
+    treeItem->addChild(newTreeItem);
+    return newTreeItem = new QTreeWidgetItem(treeItem);
 }
 void IterateFile::modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem) {
     treeItem->setText(0, convertToString(convertToDouble(obj.size)));
@@ -67,12 +65,14 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
                 if (entry.is_regular_file()) {
                     totalResult += entry.file_size();
 
-                    QTreeWidgetItem* newItem = addTreeChild(parentItem);
+                    QTreeWidgetItem* newItem = addTreeElement(parentItem);
+                    //QTreeWidgetItem* newItem = addTreeElement(parentItem);
                     entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
                     modifyTreeItem(newEntry, newItem);
                 }
                 else if (entry.is_directory()) {
-                    QTreeWidgetItem* newItem = addTreeChild(parentItem);
+                    QTreeWidgetItem* newItem = addTreeElement(parentItem);
+                    //QTreeWidgetItem* newItem = addTreeElement(parentItem);
 
                     uintmax_t dirTotal = 0;
                     dirTotal += iterateDirectory(entry.path(), newItem); // Later on, if the child dir/files stored, then either store them as wstrings or fs paths!
@@ -92,29 +92,6 @@ bool sortEntries(entryObj const& lhs, entryObj const& rhs) {
 }
 
 void IterateFile::iteratePath(const filesystem::path pathSrc) {
-    tryCatch(pathSrc, [&] {
-        filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
-        for (filesystem::directory_entry const& entry : filesystem::directory_iterator(pathSrc, settings)) {
-            tryCatch(pathSrc, [&] {
-                if (entry.is_regular_file()) {
-                    totalSpaceTaken += entry.file_size();
-                    QTreeWidgetItem* newItem = addTreeRoot();
-                    entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
-                    modifyTreeItem(newEntry, newItem);
-                }
-                else if (entry.is_directory()) {
-                    QTreeWidgetItem* newItem = addTreeRoot();
-
-                    uintmax_t dirTotal = 0;
-                    dirTotal = iterateDirectory(entry.path(), newItem);
-                    totalSpaceTaken += dirTotal;
-
-                    entryObj newEntry = entryObj({ dirTotal, entry.path().wstring() });
-                    modifyTreeItem(newEntry, newItem);
-                }
-            }, "SKIPPED: unreadable file: ");
-        }
-    }, "SKIPPED: unreadable folder: ");
-
+    totalSpaceTaken += iterateDirectory(pathSrc, 0); // Input 0, so the root items are created
     widgetTree->sortByColumn(0, Qt::AscendingOrder);
 }

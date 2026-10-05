@@ -32,8 +32,7 @@ private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
     uintmax_t iterateDirectory(const filesystem::path& path, QTreeWidgetItem* parentItem);
 
-    QTreeWidgetItem* addTreeRoot();
-    QTreeWidgetItem* addTreeChild(QTreeWidgetItem* treeItem);
+    QTreeWidgetItem* addTreeElement(QTreeWidgetItem* treeItem = 0);
     void modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem);
     QTreeWidget* widgetTree;
 
