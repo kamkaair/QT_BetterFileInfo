@@ -7,16 +7,15 @@
 IterateFile::IterateFile() {}
 
 QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {
-    QTreeWidgetItem* newTreeItem = 0;
-    if(treeItem == 0) {
-        return newTreeItem = new QTreeWidgetItem(widgetTree);
-    }
-    treeItem->addChild(newTreeItem);
-    return newTreeItem = new QTreeWidgetItem(treeItem);
+    return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
 }
+
 void IterateFile::modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem) {
-    treeItem->setText(0, convertToString(convertToDouble(obj.size)));
+    treeItem->setText(0, convertToString(convertToDouble(obj.size))); // Set the text data
     treeItem->setText(1, QString::fromStdWString(obj.path));
+
+    // Set the original size count for the sortable data. The setTexts above are "cosmetic"
+    treeItem->setData(0, Qt::UserRole, QVariant(obj.size));
 }
 
 tuple<double, int> IterateFile::convertToDouble(const uintmax_t& fileSize) {
@@ -66,13 +65,11 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
                     totalResult += entry.file_size();
 
                     QTreeWidgetItem* newItem = addTreeElement(parentItem);
-                    //QTreeWidgetItem* newItem = addTreeElement(parentItem);
                     entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
                     modifyTreeItem(newEntry, newItem);
                 }
                 else if (entry.is_directory()) {
                     QTreeWidgetItem* newItem = addTreeElement(parentItem);
-                    //QTreeWidgetItem* newItem = addTreeElement(parentItem);
 
                     uintmax_t dirTotal = 0;
                     dirTotal += iterateDirectory(entry.path(), newItem); // Later on, if the child dir/files stored, then either store them as wstrings or fs paths!
@@ -87,11 +84,7 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
     return totalResult;
 }
 
-bool sortEntries(entryObj const& lhs, entryObj const& rhs) {
-    return lhs.size > rhs.size;
-}
-
 void IterateFile::iteratePath(const filesystem::path pathSrc) {
     totalSpaceTaken += iterateDirectory(pathSrc, 0); // Input 0, so the root items are created
-    widgetTree->sortByColumn(0, Qt::AscendingOrder);
+    widgetTree->sortItems(0, Qt::DescendingOrder);
 }
