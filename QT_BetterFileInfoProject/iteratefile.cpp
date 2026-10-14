@@ -62,10 +62,11 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
         for (filesystem::directory_entry const& entry : filesystem::directory_iterator(path, settings)) {
             tryCatch(path, [&]() {
                 if (entry.is_regular_file()) {
-                    totalResult += entry.file_size();
+                    const uintmax_t fileSize = entry.file_size();
+                    totalResult += fileSize;
 
                     QTreeWidgetItem* newItem = addTreeElement(parentItem);
-                    entryObj newEntry = entryObj({ entry.file_size(), entry.path().wstring() });
+                    entryObj newEntry = entryObj({ fileSize, entry.path().wstring() });
                     modifyTreeItem(newEntry, newItem);
                 }
                 else if (entry.is_directory()) {
@@ -85,6 +86,8 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
 }
 
 void IterateFile::iteratePath(const filesystem::path pathSrc) {
+    widgetTree->setSortingEnabled(false);
     totalSpaceTaken += iterateDirectory(pathSrc, 0); // Input 0, so the root items are created
     widgetTree->sortItems(0, Qt::DescendingOrder);
+    widgetTree->setSortingEnabled(true);
 }
