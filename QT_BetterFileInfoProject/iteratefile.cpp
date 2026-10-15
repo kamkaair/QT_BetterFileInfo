@@ -6,6 +6,11 @@
 
 IterateFile::IterateFile() {}
 
+void IterateFile::updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem) {
+    totalSpaceTaken = totalSpaceTaken - widgetItem->data(0, Qt::UserRole).toULongLong();
+    label->setText(convertToString(convertToDouble(totalSpaceTaken)));
+}
+
 QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {
     return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
 }

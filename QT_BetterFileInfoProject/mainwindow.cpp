@@ -71,7 +71,6 @@ void banishChildren(QTreeWidgetItem* parent) {
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    //int column = ui->folderTree->currentColumn();
     QTreeWidgetItem* widgetItem = ui->folderTree->currentItem();
     if(!createConfirmWindow(widgetItem->text(1)))
         return;
@@ -85,7 +84,8 @@ void MainWindow::on_pushButton_3_clicked()
             int index = ui->folderTree->currentIndex().row();
             banishChildren(ui->folderTree->topLevelItem(index)); // delete the pointers to all of the children
 
-            std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
+            //std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
+            it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
 
             ui->folderTree->takeTopLevelItem(index);
             delete widgetItem;
@@ -93,7 +93,9 @@ void MainWindow::on_pushButton_3_clicked()
         }
     }
     banishChildren(widgetItem); // delete the pointers to all of the children
-    std::cout << "Widget: " << widgetItem->text(1).toStdString() << std::endl;
+    //std::cout << "Widget: " << widgetItem->text(1).toStdString() << std::endl;
+
+    it->updateTotalSpaceTaken(ui->lblTotalSize, widgetParent);
 
     widgetParent->removeChild(widgetItem);
     delete widgetItem;

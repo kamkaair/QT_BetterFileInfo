@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <QTreeWidget>
+#include <QLabel>
 
 using namespace std;
 
@@ -22,7 +23,8 @@ public:
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
     QString convertToString(tuple<double, int> inTuple);
 
-    uintmax_t getTotalSpaceTaken() {return totalSpaceTaken;}
+    uintmax_t& getTotalSpaceTaken() {return totalSpaceTaken;}
+    void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
     void clearIterations() {
         totalSpaceTaken = 0;
