@@ -4,9 +4,15 @@
 #include <QLocale>
 #include <QTranslator>
 
+#include <QStyleFactory>
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    // Use qt fusion instead of the default widget style:
+    // Apparently fusion applies the ui changes better, than the default style. Quite odd...
+    a.setStyle(QStyleFactory::create("Fusion"));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

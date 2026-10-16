@@ -1,0 +1,233 @@
+/* NOTICE
+This is stripped down/modified version of the QDarkStyleSheet's qss
+This version does not utilize icons, but only uses the color/shape changes to Qt elements */
+
+/* QWidget ----------------------------------------------------------------
+
+--------------------------------------------------------------------------- */
+QWidget {
+  background-color: #19232D;
+  border: 0px solid #455364;
+  padding: 0px;
+  color: #DFE1E2;
+  selection-background-color: #346792;
+  selection-color: #DFE1E2;
+}
+
+QWidget:disabled {
+  background-color: #19232D;
+  color: #788D9C;
+  selection-background-color: #26486B;
+  selection-color: #788D9C;
+}
+
+QWidget::item:selected {
+  background-color: #346792;
+}
+
+QWidget::item:hover:!selected {
+  background-color: #1A72BB;
+}
+
+/* QMainWindow ------------------------------------------------------------
+
+This adjusts the splitter in the dock widget, not qsplitter
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmainwindow
+
+--------------------------------------------------------------------------- */
+QMainWindow::separator {
+  background-color: #455364;
+  border: 0px solid #19232D;
+  spacing: 0px;
+  padding: 2px;
+}
+
+QMainWindow::separator:hover {
+  background-color: #60798B;
+  border: 0px solid #1A72BB;
+}
+
+QMainWindow::separator:horizontal {
+  width: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+QMainWindow::separator:vertical {
+  height: 5px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+/* QStatusBar -------------------------------------------------------------
+Bar at the bottom, doesn't really serve much purpose other than it being there
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qstatusbar
+
+--------------------------------------------------------------------------- */
+QStatusBar {
+  border: 1px solid #455364;
+  /* Fixes Spyder #9120, #9121 */
+  background: #455364;
+  /* Fixes #205, white vertical borders separating items */
+}
+
+QStatusBar::item {
+  border: none;
+}
+
+QStatusBar QToolTip {
+  background-color: #1A72BB;
+  border: 1px solid #19232D;
+  color: #19232D;
+  /* Remove padding, for fix combo box tooltip */
+  padding: 0px;
+  /* Reducing transparency to read better */
+  opacity: 230;
+}
+
+QStatusBar QLabel {
+  /* Fixes Spyder #9120, #9121 */
+  background: transparent;
+}
+
+/* QAbstractScrollArea ----------------------------------------------------
+Adds borders
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
+
+--------------------------------------------------------------------------- */
+QAbstractScrollArea {
+  background-color: #19232D;
+  border: 1px solid #455364;
+  border-radius: 4px;
+  /* fix #159 */
+  padding: 2px;
+  /* remove min-height to fix #244 */
+  color: #DFE1E2;
+}
+
+QAbstractScrollArea:disabled {
+  color: #788D9C;
+}
+
+/* QScrollArea ------------------------------------------------------------
+
+--------------------------------------------------------------------------- */
+QScrollArea QWidget QWidget:disabled {
+  background-color: #19232D;
+}
+
+/* QSizeGrip --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qsizegrip
+
+--------------------------------------------------------------------------- */
+QSizeGrip {
+  background: transparent;
+  width: 12px;
+  height: 12px;
+}
+
+/* QTextEdit --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-specific-widgets
+
+--------------------------------------------------------------------------- */
+QTextEdit {
+  background-color: #19232D;
+  color: #DFE1E2;
+  border-radius: 4px;
+  border: 1px solid #455364;
+}
+
+QTextEdit:focus {
+  border: 1px solid #1A72BB;
+}
+
+QTextEdit:selected {
+  background: #346792;
+  color: #455364;
+}
+
+/* QLabel -----------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
+
+--------------------------------------------------------------------------- */
+QLabel {
+  background-color: #19232D;
+  border: 0px solid #455364;
+  padding: 2px;
+  margin: 0px;
+  color: #DFE1E2;
+}
+
+QLabel:disabled {
+  background-color: #19232D;
+  border: 0px solid #455364;
+  color: #788D9C;
+}
+
+/* QPushButton ------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qpushbutton
+
+--------------------------------------------------------------------------- */
+QPushButton {
+  background-color: #455364;
+  color: #DFE1E2;
+  border-radius: 4px;
+  padding: 2px;
+  outline: none;
+  border: none;
+}
+
+QPushButton:disabled {
+  background-color: #455364;
+  color: #788D9C;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+QPushButton:checked {
+  background-color: #60798B;
+  border-radius: 4px;
+  padding: 2px;
+  outline: none;
+}
+
+QPushButton:checked:disabled {
+  background-color: #60798B;
+  color: #788D9C;
+  border-radius: 4px;
+  padding: 2px;
+  outline: none;
+}
+
+QPushButton:checked:selected {
+  background: #60798B;
+}
+
+QPushButton:hover {
+  background-color: #54687A;
+  color: #DFE1E2;
+}
+
+QPushButton:pressed {
+  background-color: #60798B;
+}
+
+QPushButton:selected {
+  background: #60798B;
+  color: #DFE1E2;
+}
+
+QPushButton::menu-indicator {
+  subcontrol-origin: padding;
+  subcontrol-position: bottom right;
+  bottom: 4px;
+}
+
+QDialogButtonBox QPushButton {
+  /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */
+  min-width: 80px;
+}

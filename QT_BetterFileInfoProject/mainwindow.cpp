@@ -8,6 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->folderTree->setAllColumnsShowFocus(false);
+    ui->folderTree->setSortingEnabled(true);
+
     it = new IterateFile;
     it->setTargetTree(ui->folderTree);
 
