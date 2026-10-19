@@ -58,20 +58,6 @@ bool createConfirmWindow(const QString& name) {
     return msgBox.exec() == QMessageBox::Yes ? true : false;
 }
 
-// Manual child pointer deletion is not needed. I have been misdirected by the forums and my inability to read.
-/*void banishChildren(QTreeWidgetItem* parent) {
-    for(int i = 0; i < parent->childCount(); i++) {
-        //QTreeWidgetItem* child = parent->child(i);
-        QTreeWidgetItem* child = parent->child(i);
-
-        std::cout << "Destroy the child: " << child->text(1).toStdString() << std::endl;
-        banishChildren(child);
-
-        parent->removeChild(child);
-        delete child;
-    }
-}*/
-
 void MainWindow::on_pushButton_3_clicked()
 {
     QTreeWidgetItem* widgetItem = ui->folderTree->currentItem();
@@ -81,12 +67,18 @@ void MainWindow::on_pushButton_3_clicked()
     if(!createConfirmWindow(widgetItem->text(1)))
         return;
 
+    std::wstring pathwstr = widgetItem->text(1).toStdWString();
+    pathwstr.push_back(L'\0'); // zero termination for the string
+    const wchar_t* targetPath = pathwstr.c_str();
+
     QTreeWidgetItem* widgetParent = widgetItem->parent();
     if(!widgetParent) {
         int index = ui->folderTree->currentIndex().row();
 
         std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
         it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
+
+        it->moveToRecycle(targetPath);
 
         ui->folderTree->takeTopLevelItem(index);
         delete widgetItem;
@@ -95,6 +87,8 @@ void MainWindow::on_pushButton_3_clicked()
 
     std::cout << "Widget: " << widgetItem->text(1).toStdString() << std::endl;
     it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
+
+    it->moveToRecycle(targetPath);
 
     widgetParent->removeChild(widgetItem);
     delete widgetItem;

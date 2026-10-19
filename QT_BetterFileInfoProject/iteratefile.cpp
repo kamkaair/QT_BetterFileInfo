@@ -11,6 +11,31 @@ void IterateFile::updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetIt
     label->setText(convertToString(convertToDouble(totalSpaceTaken)));
 }
 
+// General sources for the windows operations:
+// https://github.com/reunanen/cpp-move-file-to-trash/blob/master/move-file-to-trash.cpp
+// https://www.davekb.com/browse_programming_tips:win32_programmatically_move_file_to_recycle_bin:txt
+
+// Mentions of needing to add a trailing zero (the PCZZSTR string needs to be zero terminated).
+// https://stackoverflow.com/questions/42555049/shfileoperation-error-87/42555504#42555504
+
+// Microsoft:
+// I guess I could also use IFileOperation, like mentioned in the Microsoft's documention
+// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructw
+// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shfileoperationw
+void IterateFile::moveToRecycle(const wchar_t *const path) {
+    //const wchar_t *const outputFile = L"F:/TestFolderDestroy/DestroyThis.txt\0"; // zero termination
+
+    SHFILEOPSTRUCTW fileOperation;
+    memset(&fileOperation, 0, sizeof(SHFILEOPSTRUCTW));
+    fileOperation.wFunc = FO_DELETE;
+    fileOperation.pFrom = path;
+    fileOperation.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
+    const int result = SHFileOperationW(&fileOperation);
+
+    if(result != 0) // If the result is not zero, then there's an error
+        cout << "Failed to move to recycling can" << endl;
+}
+
 QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {
     return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
 }
