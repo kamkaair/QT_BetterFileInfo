@@ -71,26 +71,21 @@ void MainWindow::on_pushButton_3_clicked()
     pathwstr.push_back(L'\0'); // zero termination for the string
     const wchar_t* targetPath = pathwstr.c_str();
 
-    QTreeWidgetItem* widgetParent = widgetItem->parent();
-    if(!widgetParent) {
-        int index = ui->folderTree->currentIndex().row();
-
-        std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
-        it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
-
-        it->moveToRecycle(targetPath);
-
-        ui->folderTree->takeTopLevelItem(index);
-        delete widgetItem;
+    if(!it->moveToRecycle(targetPath))
         return;
-    }
 
-    std::cout << "Widget: " << widgetItem->text(1).toStdString() << std::endl;
+    std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
     it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
 
-    it->moveToRecycle(targetPath);
+    QTreeWidgetItem* widgetParent = widgetItem->parent();
+    if(!widgetParent) { // Change the removal method based on whether the item is root or not
+        int index = ui->folderTree->currentIndex().row();
+        ui->folderTree->takeTopLevelItem(index);
+    }
+    else {
+        widgetParent->removeChild(widgetItem);
+    }
 
-    widgetParent->removeChild(widgetItem);
     delete widgetItem;
 }
 

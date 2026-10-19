@@ -22,7 +22,7 @@ void IterateFile::updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetIt
 // I guess I could also use IFileOperation, like mentioned in the Microsoft's documention
 // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructw
 // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shfileoperationw
-void IterateFile::moveToRecycle(const wchar_t *const path) {
+bool IterateFile::moveToRecycle(const wchar_t *const path) {
     //const wchar_t *const outputFile = L"F:/TestFolderDestroy/DestroyThis.txt\0"; // zero termination
 
     SHFILEOPSTRUCTW fileOperation;
@@ -32,8 +32,9 @@ void IterateFile::moveToRecycle(const wchar_t *const path) {
     fileOperation.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
     const int result = SHFileOperationW(&fileOperation);
 
-    if(result != 0) // If the result is not zero, then there's an error
-        cout << "Failed to move to recycling can" << endl;
+    //if(result != 0) // If the result is not zero, then there's an error
+        //cout << "Failed to move to recycling can" << endl;
+    return result == 0 ? true : false;
 }
 
 QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {

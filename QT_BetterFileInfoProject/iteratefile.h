@@ -27,7 +27,7 @@ public:
 
     uintmax_t& getTotalSpaceTaken() {return totalSpaceTaken;}
     void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
-    void moveToTrash(const wchar_t *const path);
+    bool moveToRecycle(const wchar_t *const path);
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
     void clearIterations() {
         totalSpaceTaken = 0;
