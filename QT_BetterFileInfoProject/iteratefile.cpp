@@ -37,7 +37,7 @@ bool IterateFile::moveToRecycle(const wchar_t *const path) {
     return result == 0 ? true : false;
 }
 
-QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) {
+QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) { // Parent or not
     return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
 }
 
@@ -89,7 +89,7 @@ uintmax_t IterateFile::iterateDirectory(const filesystem::path& path, QTreeWidge
     uintmax_t totalResult = 0;
 
     tryCatch(path, [&] {
-        filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied | filesystem::directory_options::follow_directory_symlink;
+        filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied;
         for (filesystem::directory_entry const& entry : filesystem::directory_iterator(path, settings)) {
             tryCatch(path, [&]() {
                 if (entry.is_regular_file()) {

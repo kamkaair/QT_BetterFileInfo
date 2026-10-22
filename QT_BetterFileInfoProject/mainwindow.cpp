@@ -1,7 +1,16 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "worker.h"
+
 #include <QMessageBox>
 #include <iostream>
+
+#include <QThread>
+#include <chrono>
+
+void finishingFunc() {
+    std::cout << "We are done here" << std::endl;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -10,6 +19,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->folderTree->setAllColumnsShowFocus(false);
     ui->folderTree->setSortingEnabled(true);
+
+    WorkerThread *workerThread = new WorkerThread();
+    connect(workerThread, &WorkerThread::resultReady, this, &finishingFunc);
+    connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
+    workerThread->start();
 
     it = new IterateFile;
     it->setTargetTree(ui->folderTree);
@@ -29,8 +43,12 @@ void MainWindow::clearIterationUI() {
     ui->lblTotalSize->setText("0");
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButton_clicked() // Update
 {
+    // Record starting time
+    // Used for benchmarking the tree structure creation. It's currently quite slow.
+    auto start = std::chrono::high_resolution_clock::now();
+
     clearIterationUI();
 
     std::string pathstd = ui->textEdit->toPlainText().toStdString();
@@ -40,9 +58,16 @@ void MainWindow::on_pushButton_clicked()
 
     QString text2 = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));
     ui->lblTotalSize->setText(text2);
+
+    // Record ending time
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    auto durationS = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+
+    std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
 }
 
-void MainWindow::on_pushButton_2_clicked()
+void MainWindow::on_pushButton_2_clicked() // Clear
 {
     clearIterationUI();
 }
@@ -58,7 +83,7 @@ bool createConfirmWindow(const QString& name) {
     return msgBox.exec() == QMessageBox::Yes ? true : false;
 }
 
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_pushButton_3_clicked() // Delete
 {
     QTreeWidgetItem* widgetItem = ui->folderTree->currentItem();
     if(widgetItem == nullptr)

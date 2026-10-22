@@ -15,7 +15,8 @@ SOURCES += \
 
 HEADERS += \
     iteratefile.h \
-    mainwindow.h
+    mainwindow.h \
+    worker.h
 
 FORMS += \
     mainwindow.ui

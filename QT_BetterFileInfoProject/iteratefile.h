@@ -12,7 +12,7 @@
 using namespace std;
 
 struct entryObj {
-    uintmax_t size;
+    uintmax_t size = 0;
     wstring path;
 };
 
