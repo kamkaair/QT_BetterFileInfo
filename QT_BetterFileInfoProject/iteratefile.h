@@ -14,6 +14,8 @@ using namespace std;
 struct entryObj {
     uintmax_t size = 0;
     wstring path;
+
+    vector<entryObj> children;
 };
 
 class IterateFile
@@ -35,10 +37,11 @@ public:
 
 private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
-    uintmax_t iterateDirectory(const filesystem::path& path, QTreeWidgetItem* parentItem);
+    entryObj iterateDirectory(const filesystem::path& path);
 
     QTreeWidgetItem* addTreeElement(QTreeWidgetItem* treeItem = 0);
     void modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem);
+    void createTreeUI(entryObj& parentEntry, QTreeWidgetItem* parentItem);
     QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;
