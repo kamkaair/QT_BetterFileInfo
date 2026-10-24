@@ -1,11 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "worker.h"
 
 #include <QMessageBox>
 #include <iostream>
-
-#include <QThread>
 #include <chrono>
 
 void finishingFunc() {
@@ -19,11 +16,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->folderTree->setAllColumnsShowFocus(false);
     ui->folderTree->setSortingEnabled(true);
-
-    WorkerThread *workerThread = new WorkerThread();
-    connect(workerThread, &WorkerThread::resultReady, this, &finishingFunc);
-    connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
-    workerThread->start();
 
     it = new IterateFile;
     it->setTargetTree(ui->folderTree);

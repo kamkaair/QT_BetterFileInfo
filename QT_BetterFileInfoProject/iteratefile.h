@@ -1,27 +1,27 @@
 #ifndef ITERATEFILE_H
 #define ITERATEFILE_H
 
+// MOC is causing problems with two of my filesystem includes. These should be at least a temporary fix
+// Otherwise I could make a dedicated class with filesystem stuff in it
+#ifndef Q_MOC_RUN
 #include <filesystem>
-#include <string>
-#include <vector>
+#endif
+
 #include <windows.h>
 
 #include <QTreeWidget>
 #include <QLabel>
+#include <QObject>
+
+#include "structures.h"
 
 using namespace std;
 
-struct entryObj {
-    uintmax_t size = 0;
-    wstring path;
-
-    vector<entryObj> children;
-};
-
-class IterateFile
+class IterateFile : public QObject // IterateFile now has to inherit QObject, due to the involvement of QObject:connect
 {
+    Q_OBJECT
 public:
-    IterateFile();
+    explicit IterateFile(QObject* parent = nullptr);
 
     void iteratePath(const filesystem::path pathSrc);
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
@@ -40,8 +40,9 @@ private:
     entryObj iterateDirectory(const filesystem::path& path);
 
     QTreeWidgetItem* addTreeElement(QTreeWidgetItem* treeItem = 0);
-    void modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem);
-    void createTreeUI(entryObj& parentEntry, QTreeWidgetItem* parentItem);
+    void modifyTreeItem(const entryObj& obj, QTreeWidgetItem* treeItem);
+    void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
+    void constructUI(const entryObj& rootEntry);
     QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;

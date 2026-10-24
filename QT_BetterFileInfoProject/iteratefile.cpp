@@ -1,10 +1,12 @@
 #include "iteratefile.h"
+#include "worker.h"
+
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-#include <functional>
+#include <QThread>
 
-IterateFile::IterateFile() {}
+IterateFile::IterateFile(QObject* parent) : QObject(parent) {}
 
 void IterateFile::updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem) {
     totalSpaceTaken = totalSpaceTaken - widgetItem->data(0, Qt::UserRole).toULongLong();
@@ -41,7 +43,7 @@ QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) { // Par
     return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
 }
 
-void IterateFile::modifyTreeItem(entryObj& obj, QTreeWidgetItem* treeItem) {
+void IterateFile::modifyTreeItem(const entryObj& obj, QTreeWidgetItem* treeItem) {
     treeItem->setText(0, convertToString(convertToDouble(obj.size))); // Set the text data
     treeItem->setText(1, QString::fromStdWString(obj.path));
 
@@ -114,7 +116,7 @@ entryObj IterateFile::iterateDirectory(const filesystem::path& path) {
     return parentEntry;
 }
 
-void IterateFile::createTreeUI(entryObj& parentEntry, QTreeWidgetItem* parentItem) {
+void IterateFile::createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem) {
     QTreeWidgetItem* newItem = addTreeElement(parentItem);
     modifyTreeItem(parentEntry, newItem);
 
@@ -122,14 +124,27 @@ void IterateFile::createTreeUI(entryObj& parentEntry, QTreeWidgetItem* parentIte
         createTreeUI(childEntry, newItem);
 }
 
-void IterateFile::iteratePath(const filesystem::path pathSrc) {
-    widgetTree->setSortingEnabled(false);
+void IterateFile::constructUI(const entryObj& rootEntry) {
+    createTreeUI(rootEntry, nullptr); // Create the UI elements/QTreeWidgetItems
 
-    entryObj rootEntry = iterateDirectory(pathSrc);
-    createTreeUI(rootEntry, nullptr);
-
-    totalSpaceTaken += rootEntry.size;  // Input 0, so the root items are created
+    totalSpaceTaken += rootEntry.size;
 
     widgetTree->sortItems(0, Qt::DescendingOrder);
     widgetTree->setSortingEnabled(true);
+}
+
+void IterateFile::iteratePath(const filesystem::path pathSrc) {
+    widgetTree->setSortingEnabled(false);
+
+    //entryObj rootEntry = iterateDirectory(pathSrc); // Search for the files
+
+    // TODO: Test and possibly fix!
+    WorkerThread *workerThread = new WorkerThread();
+    workerThread->linkFunction([this](const std::filesystem::path& path){
+        return this->iterateDirectory(path);
+    }, pathSrc);
+    // Apparently winapi also has a method called "connect". Conflict...
+    QObject::connect(workerThread, &WorkerThread::resultReady, this, &IterateFile::constructUI);
+    QObject::connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
+    workerThread->start();
 }
