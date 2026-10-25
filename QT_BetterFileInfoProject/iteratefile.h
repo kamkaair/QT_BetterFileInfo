@@ -23,12 +23,14 @@ class IterateFile : public QObject // IterateFile now has to inherit QObject, du
 public:
     explicit IterateFile(QObject* parent = nullptr);
 
-    void iteratePath(const filesystem::path pathSrc);
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
     QString convertToString(tuple<double, int> inTuple);
 
     uintmax_t& getTotalSpaceTaken() {return totalSpaceTaken;}
     void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
+
+    entryObj iterateDirectory(const filesystem::path& path);
+    void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
     bool moveToRecycle(const wchar_t *const path);
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
     void clearIterations() {
@@ -37,12 +39,8 @@ public:
 
 private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
-    entryObj iterateDirectory(const filesystem::path& path);
-
     QTreeWidgetItem* addTreeElement(QTreeWidgetItem* treeItem = 0);
     void modifyTreeItem(const entryObj& obj, QTreeWidgetItem* treeItem);
-    void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
-    void constructUI(const entryObj& rootEntry);
     QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;

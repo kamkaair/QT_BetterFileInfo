@@ -24,8 +24,14 @@ private slots:
 
 private:
     void clearIterationUI();
+    void execFinished(const entryObj& rootEntry);
+    void startChrono();
+    void endChrono();
 
     Ui::MainWindow *ui;
     IterateFile* it;
+
+    std::chrono::steady_clock::time_point start;
+    bool isTimerRunning = false;
 };
 #endif // MAINWINDOW_H

@@ -15,7 +15,6 @@
 
 class WorkerThread : public QThread
 {
-    //entryObj IterateFile::iterateDirectory(const filesystem::path& path)
     Q_OBJECT
     void run() override {
         if(!funcExec)
@@ -32,7 +31,6 @@ public:
     }
 
 signals:
-    //void resultReady(const QString &s);
     void resultReady(const entryObj &obj);
 private:
     std::function<entryObj(const std::filesystem::path&)> funcExec;

@@ -123,28 +123,3 @@ void IterateFile::createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* par
     for(auto& childEntry : parentEntry.children)
         createTreeUI(childEntry, newItem);
 }
-
-void IterateFile::constructUI(const entryObj& rootEntry) {
-    createTreeUI(rootEntry, nullptr); // Create the UI elements/QTreeWidgetItems
-
-    totalSpaceTaken += rootEntry.size;
-
-    widgetTree->sortItems(0, Qt::DescendingOrder);
-    widgetTree->setSortingEnabled(true);
-}
-
-void IterateFile::iteratePath(const filesystem::path pathSrc) {
-    widgetTree->setSortingEnabled(false);
-
-    //entryObj rootEntry = iterateDirectory(pathSrc); // Search for the files
-
-    // TODO: Test and possibly fix!
-    WorkerThread *workerThread = new WorkerThread();
-    workerThread->linkFunction([this](const std::filesystem::path& path){
-        return this->iterateDirectory(path);
-    }, pathSrc);
-    // Apparently winapi also has a method called "connect". Conflict...
-    QObject::connect(workerThread, &WorkerThread::resultReady, this, &IterateFile::constructUI);
-    QObject::connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
-    workerThread->start();
-}
