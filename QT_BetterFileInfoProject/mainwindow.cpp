@@ -6,9 +6,6 @@
 #include <iostream>
 #include <chrono>
 
-#include <QGraphicsScene>
-#include <QMovie>
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -23,17 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString defaultPath = "C:/Users/Path";
     ui->textEdit->setText(defaultPath);
 
-
-    // Testing
-    std::cout << QCoreApplication::applicationDirPath().toStdString() << std::endl;
-
-    QGraphicsScene scene;
-    QLabel *gif_anim = new QLabel();
-    QMovie *movie = new QMovie(QCoreApplication::applicationDirPath() + "/assets/loading.gif");
-
-    gif_anim->setMovie(movie);
-    movie->start();
-    ui->gridLayout->addWidget(gif_anim);
+    spinner = new Spinner(QSize(16, 16), ui->lblTotalSize);
 }
 
 MainWindow::~MainWindow()
@@ -86,11 +73,13 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
 
     // Update the text
     QString spaceTakenText = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));
-    ui->lblTotalSize->setText(spaceTakenText);
+    //ui->lblTotalSize->setText(spaceTakenText);
 
-    // Record ending time
-    endChrono();
     unlockUI();
+    spinner->endMovie(spaceTakenText);
+
+     // Record ending time
+    endChrono();
 }
 
 void MainWindow::on_pushButton_clicked() // Update
@@ -98,9 +87,10 @@ void MainWindow::on_pushButton_clicked() // Update
     // Record starting time
     // Used for benchmarking the tree structure creation. It's currently quite slow.
     startChrono();
-
-    lockUI();
     clearIterationUI();
+
+    spinner->startMovie();
+    lockUI();
 
     std::string pathstd = ui->textEdit->toPlainText().toStdString();
     std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
@@ -161,5 +151,14 @@ void MainWindow::on_pushButton_3_clicked() // Delete
     }
 
     delete widgetItem;
+
+    /*if(spinner->movieState() != 2) {
+        spinner->startMovie();
+        std::cout << "Started, current state: " << spinner->movieState() << std::endl;
+    }
+    else {
+        spinner->endMovie("Kaker");
+        std::cout << "Ended, current state: " << spinner->movieState() << std::endl;
+    }*/
 }
 

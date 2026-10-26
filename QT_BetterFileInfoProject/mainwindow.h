@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+
 #include "iteratefile.h"
+#include "spinner.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,6 +36,8 @@ private:
 
     Ui::MainWindow *ui;
     IterateFile* it;
+
+    Spinner* spinner;
 
     std::chrono::steady_clock::time_point start;
     bool isTimerRunning = false;

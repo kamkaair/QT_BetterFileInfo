@@ -16,6 +16,7 @@ SOURCES += \
 HEADERS += \
     iteratefile.h \
     mainwindow.h \
+    spinner.h \
     structures.h \
     worker.h
 
