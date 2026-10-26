@@ -25,8 +25,12 @@ private slots:
 private:
     void clearIterationUI();
     void execFinished(const entryObj& rootEntry);
+
     void startChrono();
     void endChrono();
+
+    void lockUI();
+    void unlockUI();
 
     Ui::MainWindow *ui;
     IterateFile* it;

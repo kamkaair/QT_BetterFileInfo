@@ -6,6 +6,9 @@
 #include <iostream>
 #include <chrono>
 
+#include <QGraphicsScene>
+#include <QMovie>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -19,6 +22,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     QString defaultPath = "C:/Users/Path";
     ui->textEdit->setText(defaultPath);
+
+
+    // Testing
+    std::cout << QCoreApplication::applicationDirPath().toStdString() << std::endl;
+
+    QGraphicsScene scene;
+    QLabel *gif_anim = new QLabel();
+    QMovie *movie = new QMovie(QCoreApplication::applicationDirPath() + "/assets/loading.gif");
+
+    gif_anim->setMovie(movie);
+    movie->start();
+    ui->gridLayout->addWidget(gif_anim);
 }
 
 MainWindow::~MainWindow()
@@ -49,6 +64,16 @@ void MainWindow::endChrono() {
     std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
     isTimerRunning = false;
 }
+void MainWindow::lockUI() {
+    ui->pushButton->setDisabled(true);
+    ui->pushButton_2->setDisabled(true);
+    ui->pushButton_3->setDisabled(true);
+}
+void MainWindow::unlockUI() {
+    ui->pushButton->setDisabled(false);
+    ui->pushButton_2->setDisabled(false);
+    ui->pushButton_3->setDisabled(false);
+}
 
 void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath()
     ui->folderTree->setSortingEnabled(false);
@@ -65,6 +90,7 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
 
     // Record ending time
     endChrono();
+    unlockUI();
 }
 
 void MainWindow::on_pushButton_clicked() // Update
@@ -73,6 +99,7 @@ void MainWindow::on_pushButton_clicked() // Update
     // Used for benchmarking the tree structure creation. It's currently quite slow.
     startChrono();
 
+    lockUI();
     clearIterationUI();
 
     std::string pathstd = ui->textEdit->toPlainText().toStdString();
