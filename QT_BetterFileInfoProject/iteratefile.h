@@ -14,13 +14,14 @@
 #include <QObject>
 
 #include "structures.h"
+#include "worker.h"
 
 using namespace std;
 
 class IterateFile : public QObject // IterateFile now has to inherit QObject, due to the involvement of QObject:connect
 {
     Q_OBJECT
-public:
+public:    
     explicit IterateFile(QObject* parent = nullptr);
 
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);

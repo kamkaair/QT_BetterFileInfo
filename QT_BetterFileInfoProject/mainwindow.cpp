@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "worker.h"
 
 #include <QMessageBox>
 #include <iostream>
@@ -48,17 +47,15 @@ void MainWindow::endChrono() {
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     auto durationS = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
 
-    std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
+    //std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
     isTimerRunning = false;
 }
 void MainWindow::lockUI() {
     ui->pushButton->setDisabled(true);
-    ui->pushButton_2->setDisabled(true);
     ui->pushButton_3->setDisabled(true);
 }
 void MainWindow::unlockUI() {
     ui->pushButton->setDisabled(false);
-    ui->pushButton_2->setDisabled(false);
     ui->pushButton_3->setDisabled(false);
 }
 
@@ -73,12 +70,18 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
 
     // Update the text
     QString spaceTakenText = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));
-    //ui->lblTotalSize->setText(spaceTakenText);
+
+    /*if(workerThread && workerThread->isRunning()) {
+        std::cout << "Was still running" << std::endl;
+        workerThread->exit();
+        //workerThread->terminate();
+    }*/
+    workerThread = nullptr; // Give the thread a nullptr afterwads
 
     unlockUI();
     spinner->endMovie(spaceTakenText);
 
-     // Record ending time
+    // Record ending time
     endChrono();
 }
 
@@ -96,18 +99,30 @@ void MainWindow::on_pushButton_clicked() // Update
     std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
 
     // Create a new thread and execute file scanning during it
-    WorkerThread *workerThread = new WorkerThread();
+    workerThread = new WorkerThread();
     workerThread->linkFunction([this, pathstd](const std::filesystem::path& path){
         return it->iterateDirectory(pathstd);
     }, pathstd);
     // Apparently winapi also has a method called "connect". Conflict...
     QObject::connect(workerThread, &WorkerThread::resultReady, this, &MainWindow::execFinished);
     QObject::connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
+    //QObject::connect(workerThread, &WorkerThread::destroyed, this, &MainWindow::unlockUI);
+    QObject::connect(workerThread, &WorkerThread::destroyed, this, [this]{
+        workerThread = nullptr;
+        MainWindow::unlockUI();
+    });
     workerThread->start();
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear
 {
+    if(workerThread) { // TODO: Some better approach. Currently nullptrs to determine, whether the thread's supposed to be running
+        std::cout << "Please, entry" << std::endl;
+        if(workerThread->isRunning()) {
+            workerThread->terminate();
+            std::cout << "Was running, current state: " << workerThread->isRunning() << std::endl;
+        }
+    }
     clearIterationUI();
 }
 
@@ -138,7 +153,7 @@ void MainWindow::on_pushButton_3_clicked() // Delete
     if(!it->moveToRecycle(targetPath))
         return;
 
-    std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
+    //std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
     it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
 
     QTreeWidgetItem* widgetParent = widgetItem->parent();
@@ -151,14 +166,5 @@ void MainWindow::on_pushButton_3_clicked() // Delete
     }
 
     delete widgetItem;
-
-    /*if(spinner->movieState() != 2) {
-        spinner->startMovie();
-        std::cout << "Started, current state: " << spinner->movieState() << std::endl;
-    }
-    else {
-        spinner->endMovie("Kaker");
-        std::cout << "Ended, current state: " << spinner->movieState() << std::endl;
-    }*/
 }
 

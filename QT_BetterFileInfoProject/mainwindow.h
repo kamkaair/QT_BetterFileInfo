@@ -5,6 +5,7 @@
 
 #include "iteratefile.h"
 #include "spinner.h"
+#include "worker.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -36,6 +37,7 @@ private:
 
     Ui::MainWindow *ui;
     IterateFile* it;
+    WorkerThread* workerThread;
 
     Spinner* spinner;
 

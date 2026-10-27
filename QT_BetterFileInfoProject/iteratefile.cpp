@@ -1,10 +1,8 @@
 #include "iteratefile.h"
-#include "worker.h"
 
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-#include <QThread>
 
 IterateFile::IterateFile(QObject* parent) : QObject(parent) {}
 
@@ -91,6 +89,8 @@ entryObj IterateFile::iterateDirectory(const filesystem::path& path) {
     uintmax_t totalResult = 0;
     entryObj parentEntry;
     parentEntry.path = path;
+
+    // TODO: Might have to halt the iteration, if the command is given
 
     tryCatch(path, [&] {
         filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied;

@@ -4,7 +4,6 @@
 #include <QGraphicsScene>
 #include <QMovie>
 #include <QLabel>
-#include <iostream>
 
 class Spinner {
 public:
