@@ -78,20 +78,17 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
     }*/
     workerThread = nullptr; // Give the thread a nullptr afterwads
 
+    // Record ending time, end animation and unlock UI elements
     unlockUI();
     spinner->endMovie(spaceTakenText);
-
-    // Record ending time
     endChrono();
 }
 
 void MainWindow::on_pushButton_clicked() // Update
 {
-    // Record starting time
-    // Used for benchmarking the tree structure creation. It's currently quite slow.
+    // Record starting time, start animation, clear and lock UI
     startChrono();
     clearIterationUI();
-
     spinner->startMovie();
     lockUI();
 
@@ -100,14 +97,14 @@ void MainWindow::on_pushButton_clicked() // Update
 
     // Create a new thread and execute file scanning during it
     workerThread = new WorkerThread();
-    workerThread->linkFunction([this, pathstd](const std::filesystem::path& path){
-        return it->iterateDirectory(pathstd);
+    workerThread->linkFunction([this, pathstd](const std::filesystem::path& path, const std::atomic<bool>& stopExec){
+        return it->iterateDirectory(path, stopExec);
     }, pathstd);
     // Apparently winapi also has a method called "connect". Conflict...
     QObject::connect(workerThread, &WorkerThread::resultReady, this, &MainWindow::execFinished);
     QObject::connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
     //QObject::connect(workerThread, &WorkerThread::destroyed, this, &MainWindow::unlockUI);
-    QObject::connect(workerThread, &WorkerThread::destroyed, this, [this]{
+    QObject::connect(workerThread, &WorkerThread::destroyed, this, [this] {
         workerThread = nullptr;
         MainWindow::unlockUI();
     });
@@ -116,12 +113,16 @@ void MainWindow::on_pushButton_clicked() // Update
 
 void MainWindow::on_pushButton_2_clicked() // Clear
 {
-    if(workerThread) { // TODO: Some better approach. Currently nullptrs to determine, whether the thread's supposed to be running
-        std::cout << "Please, entry" << std::endl;
+    if(workerThread) {
+        std::cout << "WorkerThread valid: ";
         if(workerThread->isRunning()) {
-            workerThread->terminate();
-            std::cout << "Was running, current state: " << workerThread->isRunning() << std::endl;
+            //workerThread->terminate();
+            //workerThread->requestInterruption();
+            workerThread->requestStopExec();
+            workerThread->quit();
+            std::cout << "Stop requested - " << workerThread->getStopExec();
         }
+        std::cout << std::endl;
     }
     clearIterationUI();
 }
