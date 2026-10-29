@@ -85,24 +85,20 @@ void IterateFile::tryCatch(const filesystem::path& path, function<void()> func, 
     }
 }
 
-//entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::function<bool()>& stopExec) {
 entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec) {
     uintmax_t totalResult = 0;
     entryObj parentEntry;
     parentEntry.path = path;
 
-    if(stopExec) { // Possibly break, before entering the loop
-        cout << "Break before the loop" << endl;
+    if(stopExec) // Possibly break, before entering the loop
         return parentEntry;
-    }
 
     tryCatch(path, [&] {
         filesystem::directory_options settings = filesystem::directory_options::skip_permission_denied;
         for (filesystem::directory_entry const& entry : filesystem::directory_iterator(path, settings)) {
-            if(stopExec) { // Halt the iteration upon user's command
-               cout << "Break from the loop" << endl;
+            if(stopExec) // Halt the iteration upon user's command
                break;
-            }
+
             tryCatch(path, [&]() {
                 if (entry.is_regular_file()) {
                     const uintmax_t fileSize = entry.file_size();

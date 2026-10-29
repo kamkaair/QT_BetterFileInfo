@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include <QMessageBox>
-#include <iostream>
 #include <chrono>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -70,24 +69,18 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
 
     // Update the text
     QString spaceTakenText = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));
-
-    /*if(workerThread && workerThread->isRunning()) {
-        std::cout << "Was still running" << std::endl;
-        workerThread->exit();
-        //workerThread->terminate();
-    }*/
     workerThread = nullptr; // Give the thread a nullptr afterwads
 
     // Record ending time, end animation and unlock UI elements
     unlockUI();
     spinner->endMovie(spaceTakenText);
-    endChrono();
+    //endChrono();
 }
 
 void MainWindow::on_pushButton_clicked() // Update
 {
     // Record starting time, start animation, clear and lock UI
-    startChrono();
+    //startChrono(); // Either make an UI element for these or get rid of them
     clearIterationUI();
     spinner->startMovie();
     lockUI();
@@ -103,7 +96,6 @@ void MainWindow::on_pushButton_clicked() // Update
     // Apparently winapi also has a method called "connect". Conflict...
     QObject::connect(workerThread, &WorkerThread::resultReady, this, &MainWindow::execFinished);
     QObject::connect(workerThread, &WorkerThread::finished, workerThread, &QObject::deleteLater);
-    //QObject::connect(workerThread, &WorkerThread::destroyed, this, &MainWindow::unlockUI);
     QObject::connect(workerThread, &WorkerThread::destroyed, this, [this] {
         workerThread = nullptr;
         MainWindow::unlockUI();
@@ -114,15 +106,9 @@ void MainWindow::on_pushButton_clicked() // Update
 void MainWindow::on_pushButton_2_clicked() // Clear
 {
     if(workerThread) {
-        std::cout << "WorkerThread valid: ";
         if(workerThread->isRunning()) {
-            //workerThread->terminate();
-            //workerThread->requestInterruption();
             workerThread->requestStopExec();
-            workerThread->quit();
-            std::cout << "Stop requested - " << workerThread->getStopExec();
         }
-        std::cout << std::endl;
     }
     clearIterationUI();
 }
@@ -154,7 +140,6 @@ void MainWindow::on_pushButton_3_clicked() // Delete
     if(!it->moveToRecycle(targetPath))
         return;
 
-    //std::cout << "Top level item: " << widgetItem->text(1).toStdString() << std::endl;
     it->updateTotalSpaceTaken(ui->lblTotalSize, widgetItem);
 
     QTreeWidgetItem* widgetParent = widgetItem->parent();

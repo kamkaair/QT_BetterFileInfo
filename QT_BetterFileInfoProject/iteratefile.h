@@ -29,7 +29,6 @@ public:
     uintmax_t& getTotalSpaceTaken() {return totalSpaceTaken;}
     void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
 
-    //entryObj iterateDirectory(const filesystem::path& path, const std::function<bool()>& stopExec);
     entryObj iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec);
     void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
     bool moveToRecycle(const wchar_t *const path);

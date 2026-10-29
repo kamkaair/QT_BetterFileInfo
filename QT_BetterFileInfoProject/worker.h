@@ -19,32 +19,24 @@ class WorkerThread : public QThread
     void run() override {
         if(!funcExec)
             return;
-        /*entryObj result = funcExec(rootPath, [this] {
-            std::cout << "Interruption value: " << isInterruptionRequested() << std::endl;
-            return isInterruptionRequested();
-        });*/
         entryObj result = funcExec(rootPath, stopExec);
 
         if(!stopExec) {
-            //std::cout << "Emitted result: " << result.size << std::endl;
             emit resultReady(result); // Emit the resulting rootEntry to the finishing method
         }
     }
 
 public:
-    //void linkFunction(std::function<entryObj(const std::filesystem::path&, const std::function<bool()>&)> inFunc, const std::filesystem::path inPath) {
     void linkFunction(std::function<entryObj(const std::filesystem::path&, const std::atomic<bool>&)> inFunc, const std::filesystem::path inPath) {
         funcExec = inFunc;
         rootPath = inPath;
     }
     void requestStopExec() { stopExec.store(true); }
-    //void resetExec() { stopExec.store(false); }
-    bool getStopExec() { return stopExec.load(); }
+    bool getStopExec() { return stopExec.load(std::memory_order_relaxed); }
 
 signals:
     void resultReady(const entryObj &obj);
 private:
-    //std::function<entryObj(const std::filesystem::path&, const std::function<bool()>&)> funcExec;
     std::function<entryObj(const std::filesystem::path&, const std::atomic<bool>&)> funcExec;
     std::filesystem::path rootPath;
 
