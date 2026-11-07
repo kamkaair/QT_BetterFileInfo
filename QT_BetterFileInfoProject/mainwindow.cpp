@@ -3,6 +3,7 @@
 
 #include <QMessageBox>
 #include <chrono>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -85,11 +86,13 @@ void MainWindow::on_pushButton_clicked() // Update
     spinner->startMovie();
     lockUI();
 
-    std::string pathstd = ui->textEdit->toPlainText().toStdString();
-    std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
+    //std::string pathstd = ui->textEdit->toPlainText().toStdString();
+    std::wstring pathstd = ui->textEdit->toPlainText().toStdWString();
+    //std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
+    //std::replace(pathstd.begin(), pathstd.end(), '/', '\\');
 
     // Create a new thread and execute file scanning during it
-    workerThread = new WorkerThread();
+    /*workerThread = new WorkerThread(); // linkFunction to constructor
     workerThread->linkFunction([this, pathstd](const std::filesystem::path& path, const std::atomic<bool>& stopExec){
         return it->iterateDirectory(path, stopExec);
     }, pathstd);
@@ -100,7 +103,11 @@ void MainWindow::on_pushButton_clicked() // Update
         workerThread = nullptr;
         MainWindow::unlockUI();
     });
-    workerThread->start();
+    workerThread->start();*/
+
+    if(!it->iterateDirectoryWindows(pathstd, L"*")) {
+        std::cout << "hecks" << std::endl;
+    }
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear

@@ -30,6 +30,7 @@ public:
     void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
 
     entryObj iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec);
+    bool iterateDirectoryWindows(wstring path, const wstring mask);
     void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
     bool moveToRecycle(const wchar_t *const path);
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
