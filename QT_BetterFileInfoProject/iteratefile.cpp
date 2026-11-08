@@ -123,11 +123,60 @@ entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::
     return parentEntry;
 }
 
+entryObj IterateFile::iterateDirWin(wstring path, const wstring mask) {
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATA ffd;
+
+    entryObj parentEntry;
+    parentEntry.path = path;
+
+    wstring spec = path + L"\\" + mask;
+    //wcout << spec << endl;
+
+    hFind = FindFirstFile(spec.c_str(), &ffd);
+    if (hFind == INVALID_HANDLE_VALUE)  {
+        cout << "Aieee" << endl;
+        return parentEntry;
+    }
+
+    do {
+        if (wcscmp(ffd.cFileName, L".") != 0 &&
+            wcscmp(ffd.cFileName, L"..") != 0) {
+            if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                // https://learn.microsoft.com/en-us/previous-versions/ms915521(v=msdn.10)
+                // (nFileSizeHigh * MAXDWORD+1) + nFileSizeLow
+                auto fileSize = (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
+                entryObj newItem = iterateDirWin(path + L"\\" + ffd.cFileName, mask);
+                //parentEntry.size += (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
+                parentEntry.size += newItem.size;
+                parentEntry.children.push_back(newItem);
+                //parentEntry.path = path + L"\\" + ffd.cFileName;
+                //wcout << "Size: " << fileSize << " - Path: " << (path + L"\\" + ffd.cFileName) << endl;
+                //directories.push(path + L"\\" + ffd.cFileName);
+            }
+            else {
+                auto fileSize = (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
+                entryObj newItem = entryObj({ fileSize, path + L"\\" + ffd.cFileName });
+                newItem.size = fileSize;
+                parentEntry.size += (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
+                parentEntry.children.push_back(newItem);
+                //wcout << "Size: " << fileSize << " - Path: " << (path + L"\\" + ffd.cFileName) << endl;
+                //parentEntry.size = fileSize;
+                //parentEntry.path = path + L"\\" + ffd.cFileName;
+                //files.push_back(path + L"\\" + ffd.cFileName);
+            }
+        }
+    } while (FindNextFile(hFind, &ffd) != 0);
+    //parentEntry.size
+    return parentEntry;
+}
+
 bool IterateFile::iterateDirectoryWindows(wstring path, const wstring mask) {
     HANDLE hFind = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATA ffd;
     wstring spec;
     stack<wstring> directories;
+    entryObj parentEntry;
 
     directories.push(path);
     vector<wstring> files;
@@ -142,13 +191,6 @@ bool IterateFile::iterateDirectoryWindows(wstring path, const wstring mask) {
         if (hFind == INVALID_HANDLE_VALUE)  {
             return false;
         }
-
-        //return (treeItem == nullptr) ? new NumericTreeWidgetItem(widgetTree) : new NumericTreeWidgetItem(treeItem);
-        /*treeItem->setText(0, convertToString(convertToDouble(obj.size))); // Set the text data
-        treeItem->setText(1, QString::fromStdWString(obj.path));
-
-        // Set the original size count for the sortable data. The setTexts above are "cosmetic"
-        treeItem->setData(0, Qt::UserRole, QVariant(obj.size));*/
 
         do {
             if (wcscmp(ffd.cFileName, L".") != 0 &&

@@ -105,9 +105,18 @@ void MainWindow::on_pushButton_clicked() // Update
     });
     workerThread->start();*/
 
-    if(!it->iterateDirectoryWindows(pathstd, L"*")) {
+    /*if(!it->iterateDirectoryWindows(pathstd, L"*")) {
         std::cout << "hecks" << std::endl;
-    }
+    }*/
+
+    entryObj rootEntry = it->iterateDirWin(pathstd, L"*");
+    ui->folderTree->setSortingEnabled(false);
+
+    it->createTreeUI(rootEntry, nullptr); // Create the UI elements/QTreeWidgetItems
+    it->getTotalSpaceTaken() += rootEntry.size;
+
+    ui->folderTree->sortItems(0, Qt::DescendingOrder);
+    ui->folderTree->setSortingEnabled(true);
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear
