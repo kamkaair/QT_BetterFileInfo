@@ -11,9 +11,4 @@ struct entryObj {
     std::vector<entryObj> children;
 };
 
-/*struct entryObjWin {
-    wstring path;
-
-};*/
-
 #endif // STRUCTURES_H

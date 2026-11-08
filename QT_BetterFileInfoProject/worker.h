@@ -5,12 +5,6 @@
 #include <functional>
 #include <atomic>
 
-// MOC is causing problems with two of my filesystem includes. These should be at least a temporary fix
-// Otherwise I could make a dedicated class with filesystem stuff in it
-#ifndef Q_MOC_RUN
-#include <filesystem>
-#endif
-
 #include "structures.h"
 
 class WorkerThread : public QThread
@@ -27,7 +21,7 @@ class WorkerThread : public QThread
     }
 
 public:
-    void linkFunction(std::function<entryObj(const std::filesystem::path&, const std::atomic<bool>&)> inFunc, const std::filesystem::path inPath) {
+    void linkFunction(std::function<entryObj(const std::wstring&, const std::atomic<bool>&)> inFunc, const std::wstring inPath) {
         funcExec = inFunc;
         rootPath = inPath;
     }
@@ -37,8 +31,8 @@ public:
 signals:
     void resultReady(const entryObj &obj);
 private:
-    std::function<entryObj(const std::filesystem::path&, const std::atomic<bool>&)> funcExec;
-    std::filesystem::path rootPath;
+    std::function<entryObj(const std::wstring&, const std::atomic<bool>&)> funcExec;
+    std::wstring rootPath;
 
     std::atomic<bool> stopExec{false};
 };

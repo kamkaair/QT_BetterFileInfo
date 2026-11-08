@@ -86,15 +86,13 @@ void MainWindow::on_pushButton_clicked() // Update
     spinner->startMovie();
     lockUI();
 
-    //std::string pathstd = ui->textEdit->toPlainText().toStdString();
     std::wstring pathstd = ui->textEdit->toPlainText().toStdWString();
     //std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
-    //std::replace(pathstd.begin(), pathstd.end(), '/', '\\');
 
     // Create a new thread and execute file scanning during it
-    /*workerThread = new WorkerThread(); // linkFunction to constructor
-    workerThread->linkFunction([this, pathstd](const std::filesystem::path& path, const std::atomic<bool>& stopExec){
-        return it->iterateDirectory(path, stopExec);
+    workerThread = new WorkerThread(); // linkFunction to constructor
+    workerThread->linkFunction([this, pathstd](const wstring& path, const std::atomic<bool>& stopExec){
+        return it->iterateDirectoryWindows(path, stopExec);
     }, pathstd);
     // Apparently winapi also has a method called "connect". Conflict...
     QObject::connect(workerThread, &WorkerThread::resultReady, this, &MainWindow::execFinished);
@@ -103,20 +101,7 @@ void MainWindow::on_pushButton_clicked() // Update
         workerThread = nullptr;
         MainWindow::unlockUI();
     });
-    workerThread->start();*/
-
-    /*if(!it->iterateDirectoryWindows(pathstd, L"*")) {
-        std::cout << "hecks" << std::endl;
-    }*/
-
-    entryObj rootEntry = it->iterateDirWin(pathstd, L"*");
-    ui->folderTree->setSortingEnabled(false);
-
-    it->createTreeUI(rootEntry, nullptr); // Create the UI elements/QTreeWidgetItems
-    it->getTotalSpaceTaken() += rootEntry.size;
-
-    ui->folderTree->sortItems(0, Qt::DescendingOrder);
-    ui->folderTree->setSortingEnabled(true);
+    workerThread->start();
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear
