@@ -88,7 +88,7 @@ void IterateFile::tryCatch(const filesystem::path& path, function<void()> func, 
     }
 }
 
-entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec) {
+/*entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec) {
     uintmax_t totalResult = 0;
     entryObj parentEntry;
     parentEntry.path = path;
@@ -121,13 +121,13 @@ entryObj IterateFile::iterateDirectory(const filesystem::path& path, const std::
     parentEntry.size = totalResult;
 
     return parentEntry;
-}
+}*/
 
-void createEntry(entryObj newItem, entryObj& parentEntry) {
+void createEntry(entryObj&& newItem, entryObj& parentEntry) {
     // https://learn.microsoft.com/en-us/previous-versions/ms915521(v=msdn.10)
     // (nFileSizeHigh * MAXDWORD+1) + nFileSizeLow
     parentEntry.size += newItem.size;
-    parentEntry.children.push_back(newItem);
+    parentEntry.children.push_back(std::move(newItem)); // Move newItem, instead of copying. Ts was taking a lot of memory
 }
 
 entryObj IterateFile::iterateDirectoryWindows(const wstring& path, const std::atomic<bool>& stopExec, const wstring mask) {
@@ -138,10 +138,13 @@ entryObj IterateFile::iterateDirectoryWindows(const wstring& path, const std::at
     parentEntry.path = path;
     wstring spec = path + L"\\" + mask;
 
-    if(stopExec) // Possibly break, before entering the loop
+    if(stopExec.load()) // Possibly break, before entering the loop
         return parentEntry;
 
-    hFind = FindFirstFile(spec.c_str(), &ffd);
+    // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-findfirstfileexw
+    hFind = FindFirstFileExW(spec.c_str(), FindExInfoBasic, &ffd, FindExSearchNameMatch, nullptr, FIND_FIRST_EX_LARGE_FETCH);
+    //hFind = FindFirstFile(spec.c_str(), &ffd);
+
     if (hFind == INVALID_HANDLE_VALUE)  {
         //wcout << "INVALID: " << spec << endl;
         return parentEntry;
@@ -150,17 +153,30 @@ entryObj IterateFile::iterateDirectoryWindows(const wstring& path, const std::at
     do {
         if(stopExec) // Halt the iteration upon user's command
            break;
-        if (wcscmp(ffd.cFileName, L".") != 0 &&
-            wcscmp(ffd.cFileName, L"..") != 0) {
-            if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                createEntry(iterateDirectoryWindows(path + L"\\" + ffd.cFileName, stopExec, mask), parentEntry);
-            }
-            else {
-                unsigned long long int fileSize = (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
-                createEntry(entryObj({ fileSize, path + L"\\" + ffd.cFileName }), parentEntry);
-            }
+        if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
+            continue;
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            createEntry(iterateDirectoryWindows(path + L"\\" + ffd.cFileName, stopExec, mask), parentEntry);
+            //QTreeWidgetItem* newItem = addTreeElement(parentItem);
+            //entryObj newEntry = iterateDirectoryWindows(path + L"\\" + ffd.cFileName, stopExec, newItem, mask);
+            //parentEntry.size += newEntry.size;
+            //modifyTreeItem(newEntry, newItem);
         }
+        else {
+            // The multiplication can happen using 32-bit arithmetic before the result is assigned to the 64-bit variable
+            unsigned long long int fileSize = (static_cast<unsigned long long>(ffd.nFileSizeHigh) << 32) | ffd.nFileSizeLow;
+            //unsigned long long int fileSize = (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
+
+            //entryObj newEntry = entryObj({ fileSize, path + L"\\" + ffd.cFileName });
+            //QTreeWidgetItem* newItem = addTreeElement(parentItem);
+            //parentEntry.size += fileSize;
+            //modifyTreeItem(newEntry, newItem);
+            createEntry(entryObj({ fileSize, path + L"\\" + ffd.cFileName }), parentEntry);
+        }
+
     } while (FindNextFile(hFind, &ffd) != 0);
+    FindClose(hFind);
+
     return parentEntry;
 }
 

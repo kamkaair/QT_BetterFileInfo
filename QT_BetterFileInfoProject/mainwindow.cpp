@@ -47,7 +47,7 @@ void MainWindow::endChrono() {
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     auto durationS = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
 
-    //std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
+    std::cout << "Time taken: " << durationS.count() << " seconds - " << durationMs.count() << " milliseconds" << std::endl;
     isTimerRunning = false;
 }
 void MainWindow::lockUI() {
@@ -60,8 +60,9 @@ void MainWindow::unlockUI() {
 }
 
 void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath()
-    ui->folderTree->setSortingEnabled(false);
+    endChrono();
 
+    startChrono(); // ui construction
     it->createTreeUI(rootEntry, nullptr); // Create the UI elements/QTreeWidgetItems
     it->getTotalSpaceTaken() += rootEntry.size;
 
@@ -74,17 +75,21 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
 
     // Record ending time, end animation and unlock UI elements
     unlockUI();
+    ui->folderTree->setUpdatesEnabled(true);
     spinner->endMovie(spaceTakenText);
-    //endChrono();
+    endChrono();
 }
 
 void MainWindow::on_pushButton_clicked() // Update
 {
     // Record starting time, start animation, clear and lock UI
-    //startChrono(); // Either make an UI element for these or get rid of them
+    startChrono(); // Either make an UI element for these or get rid of them
     clearIterationUI();
     spinner->startMovie();
     lockUI();
+
+    ui->folderTree->setUpdatesEnabled(false);
+    ui->folderTree->setSortingEnabled(false);
 
     std::wstring pathstd = ui->textEdit->toPlainText().toStdWString();
     //std::replace(pathstd.begin(), pathstd.end(), '\\', '/');
@@ -102,6 +107,13 @@ void MainWindow::on_pushButton_clicked() // Update
         MainWindow::unlockUI();
     });
     workerThread->start();
+
+    /*std::atomic<bool> stopExec{false};
+    it->iterateDirectoryWindows(pathstd, stopExec, nullptr);
+    //it->iterateDirectoryWindowsAlt(pathstd, L"*");
+    endChrono();
+    ui->folderTree->setUpdatesEnabled(true);
+    ui->folderTree->setSortingEnabled(true);*/
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear
