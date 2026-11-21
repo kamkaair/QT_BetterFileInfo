@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <vector>
 
 #include "iteratefile.h"
 #include "spinner.h"
@@ -25,6 +26,8 @@ private slots:
     void on_pushButton_2_clicked();
     void on_pushButton_3_clicked();
 
+    void on_folderTree_itemExpanded(QTreeWidgetItem *item);
+
 private:
     void clearIterationUI();
     void execFinished(const entryObj& rootEntry);
@@ -38,6 +41,7 @@ private:
     Ui::MainWindow *ui;
     IterateFile* it;
     WorkerThread* workerThread;
+    std::vector<QTreeWidgetItem*> seenIDs;
 
     Spinner* spinner;
 

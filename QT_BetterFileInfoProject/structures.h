@@ -4,9 +4,8 @@
 #include <string>
 
 struct entryObj {
-    //uintmax_t size = 0;
     unsigned long long int size = 0;
-    std::wstring path;
+    std::wstring fileName;
 
     std::vector<entryObj> children;
 };

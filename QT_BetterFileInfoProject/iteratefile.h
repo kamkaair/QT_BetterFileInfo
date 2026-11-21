@@ -26,11 +26,12 @@ public:
     tuple<double, int> convertToDouble(const uintmax_t& fileSize);
     QString convertToString(tuple<double, int> inTuple);
 
-    uintmax_t& getTotalSpaceTaken() {return totalSpaceTaken;}
+    unsigned long long int& getTotalSpaceTaken() {return totalSpaceTaken;}
     void updateTotalSpaceTaken(QLabel* label, QTreeWidgetItem* widgetItem);
 
     //entryObj iterateDirectory(const filesystem::path& path, const std::atomic<bool>& stopExec);
-    entryObj iterateDirectoryWindows(const wstring& path, const std::atomic<bool>& stopExec, const wstring mask = L"*");
+    void iterateDirectoryWindows(const wstring& path, QTreeWidgetItem* parentItem, const wstring& mask = L"*");
+    entryObj iterateDirectoriesWindows(const wstring& path, const std::atomic<bool>& stopExec, const wstring& mask = L"*");
     void createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem);
     bool moveToRecycle(const wchar_t *const path);
     void setTargetTree(QTreeWidget* widgetTreeRef) { widgetTree = widgetTreeRef;}
@@ -38,14 +39,24 @@ public:
         totalSpaceTaken = 0;
     }
 
+    unsigned long long int getUsedMemory() { return totalEntryMemory; }
+    unsigned int getTotalFolders() {return totalFolders; }
+    unsigned int getTotalFiles() { return totalFiles; }
+    void resetMemory() { totalEntryMemory = 0; totalFolders = 0; totalFiles = 0; }
+
 private:
     void tryCatch(const filesystem::path& path, function<void()> func, string err);
     QTreeWidgetItem* addTreeElement(QTreeWidgetItem* treeItem = 0);
     void modifyTreeItem(const entryObj& obj, QTreeWidgetItem* treeItem);
+    void createEntry(entryObj&& newItem, entryObj& parentEntry);
     QTreeWidget* widgetTree;
 
     const bool enableWarnigns = false;
-    uintmax_t totalSpaceTaken = 0;
+    unsigned long long int totalSpaceTaken = 0;
+
+    unsigned long long int totalEntryMemory = 0;
+    unsigned int totalFolders = 0;
+    unsigned int totalFiles = 0;
 };
 
 // Great source for sorting in qt. Used some of the code for defining my own sorting logic:

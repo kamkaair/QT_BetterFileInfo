@@ -30,6 +30,7 @@ MainWindow::~MainWindow()
 void MainWindow::clearIterationUI() {
     ui->folderTree->clear();
     it->clearIterations();
+    seenIDs.clear();
     ui->lblTotalSize->setText("0");
 }
 void MainWindow::startChrono() {
@@ -73,6 +74,11 @@ void MainWindow::execFinished(const entryObj& rootEntry) { // After iteratePath(
     QString spaceTakenText = it->convertToString(it->convertToDouble(it->getTotalSpaceTaken()));
     workerThread = nullptr; // Give the thread a nullptr afterwads
 
+    std::cout << "Total files: " << it->getTotalFiles() <<
+                 " - Total folders: " << it->getTotalFolders() <<
+                 " - Memory allocated: " << it->getUsedMemory() << std::endl;
+    it->resetMemory();
+
     // Record ending time, end animation and unlock UI elements
     unlockUI();
     ui->folderTree->setUpdatesEnabled(true);
@@ -97,7 +103,9 @@ void MainWindow::on_pushButton_clicked() // Update
     // Create a new thread and execute file scanning during it
     workerThread = new WorkerThread(); // linkFunction to constructor
     workerThread->linkFunction([this, pathstd](const wstring& path, const std::atomic<bool>& stopExec){
-        return it->iterateDirectoryWindows(path, stopExec);
+        return it->iterateDirectoriesWindows(path, stopExec);
+        //it->iterateDirectoryWindowsFAST(path);
+        //return entryObj();
     }, pathstd);
     // Apparently winapi also has a method called "connect". Conflict...
     QObject::connect(workerThread, &WorkerThread::resultReady, this, &MainWindow::execFinished);
@@ -107,13 +115,6 @@ void MainWindow::on_pushButton_clicked() // Update
         MainWindow::unlockUI();
     });
     workerThread->start();
-
-    /*std::atomic<bool> stopExec{false};
-    it->iterateDirectoryWindows(pathstd, stopExec, nullptr);
-    //it->iterateDirectoryWindowsAlt(pathstd, L"*");
-    endChrono();
-    ui->folderTree->setUpdatesEnabled(true);
-    ui->folderTree->setSortingEnabled(true);*/
 }
 
 void MainWindow::on_pushButton_2_clicked() // Clear
@@ -167,3 +168,15 @@ void MainWindow::on_pushButton_3_clicked() // Delete
     delete widgetItem;
 }
 
+void MainWindow::on_folderTree_itemExpanded(QTreeWidgetItem *item)
+{
+    // Attempts to find a directory, which items have been already created. Skip those
+    auto iter = std::find(seenIDs.begin(), seenIDs.end(), item);
+    if(iter != seenIDs.end()) {
+        std::cout << "Meow fuck outta the way" << std::endl;
+        return;
+    }
+    it->iterateDirectoryWindows(item->text(1).toStdWString(), item);
+    seenIDs.push_back(item);
+    std::cout << "Proceed: " << item->text(1).toStdString() << " - sizeof item: " << sizeof(item) << std::endl;
+}

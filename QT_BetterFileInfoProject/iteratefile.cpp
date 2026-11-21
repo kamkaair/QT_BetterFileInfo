@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <string>
-#include <stack>
 
 IterateFile::IterateFile(QObject* parent) : QObject(parent) {}
 
@@ -46,7 +45,7 @@ QTreeWidgetItem* IterateFile::addTreeElement(QTreeWidgetItem* treeItem) { // Par
 
 void IterateFile::modifyTreeItem(const entryObj& obj, QTreeWidgetItem* treeItem) {
     treeItem->setText(0, convertToString(convertToDouble(obj.size))); // Set the text data
-    treeItem->setText(1, QString::fromStdWString(obj.path));
+    treeItem->setText(1, QString::fromStdWString(obj.fileName));
 
     // Set the original size count for the sortable data. The setTexts above are "cosmetic"
     treeItem->setData(0, Qt::UserRole, QVariant(obj.size));
@@ -123,19 +122,19 @@ void IterateFile::tryCatch(const filesystem::path& path, function<void()> func, 
     return parentEntry;
 }*/
 
-void createEntry(entryObj&& newItem, entryObj& parentEntry) {
+void IterateFile::createEntry(entryObj&& newItem, entryObj& parentEntry) {
     // https://learn.microsoft.com/en-us/previous-versions/ms915521(v=msdn.10)
     // (nFileSizeHigh * MAXDWORD+1) + nFileSizeLow
     parentEntry.size += newItem.size;
     parentEntry.children.push_back(std::move(newItem)); // Move newItem, instead of copying. Ts was taking a lot of memory
 }
 
-entryObj IterateFile::iterateDirectoryWindows(const wstring& path, const std::atomic<bool>& stopExec, const wstring mask) {
+entryObj IterateFile::iterateDirectoriesWindows(const wstring& path, const std::atomic<bool>& stopExec, const wstring& mask) {
     HANDLE hFind = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATA ffd;
 
     entryObj parentEntry;
-    parentEntry.path = path;
+    parentEntry.fileName = path;
     wstring spec = path + L"\\" + mask;
 
     if(stopExec.load()) // Possibly break, before entering the loop
@@ -151,38 +150,69 @@ entryObj IterateFile::iterateDirectoryWindows(const wstring& path, const std::at
     }
 
     do {
+        //if (ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+            //continue; // zero-size entry
+
         if(stopExec) // Halt the iteration upon user's command
            break;
         if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
             continue;
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            createEntry(iterateDirectoryWindows(path + L"\\" + ffd.cFileName, stopExec, mask), parentEntry);
-            //QTreeWidgetItem* newItem = addTreeElement(parentItem);
-            //entryObj newEntry = iterateDirectoryWindows(path + L"\\" + ffd.cFileName, stopExec, newItem, mask);
-            //parentEntry.size += newEntry.size;
-            //modifyTreeItem(newEntry, newItem);
+            createEntry(iterateDirectoriesWindows(path + L"\\" + ffd.cFileName, stopExec, mask), parentEntry);
+            totalFolders++;
         }
         else {
             // The multiplication can happen using 32-bit arithmetic before the result is assigned to the 64-bit variable
             unsigned long long int fileSize = (static_cast<unsigned long long>(ffd.nFileSizeHigh) << 32) | ffd.nFileSizeLow;
-            //unsigned long long int fileSize = (ffd.nFileSizeHigh * MAXDWORD+1) + ffd.nFileSizeLow;
-
-            //entryObj newEntry = entryObj({ fileSize, path + L"\\" + ffd.cFileName });
-            //QTreeWidgetItem* newItem = addTreeElement(parentItem);
-            //parentEntry.size += fileSize;
-            //modifyTreeItem(newEntry, newItem);
-            createEntry(entryObj({ fileSize, path + L"\\" + ffd.cFileName }), parentEntry);
+            //createEntry(entryObj({ fileSize, path + L"\\" + ffd.cFileName }), parentEntry);
+            parentEntry.size += fileSize;
+            totalFiles++;
         }
 
     } while (FindNextFile(hFind, &ffd) != 0);
     FindClose(hFind);
 
+    // Testing
+    totalEntryMemory += sizeof(parentEntry);
+
     return parentEntry;
+}
+
+void IterateFile::iterateDirectoryWindows(const wstring& path, QTreeWidgetItem* parentItem, const wstring& mask) {
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATA ffd;
+    wstring spec = path + L"\\" + mask;
+
+    // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-findfirstfileexw
+    hFind = FindFirstFileExW(spec.c_str(), FindExInfoBasic, &ffd, FindExSearchNameMatch, nullptr, FIND_FIRST_EX_LARGE_FETCH);
+
+    if (hFind == INVALID_HANDLE_VALUE)
+        return;
+
+    do {
+        if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0)
+            continue;
+        if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            totalFolders++;
+            continue;
+        }
+        // The multiplication can happen using 32-bit arithmetic before the result is assigned to the 64-bit variable
+        unsigned long long int fileSize = (static_cast<unsigned long long>(ffd.nFileSizeHigh) << 32) | ffd.nFileSizeLow;
+        entryObj newEntry = { fileSize, path + L"\\" + ffd.cFileName };
+
+        QTreeWidgetItem* newItem = addTreeElement(parentItem);
+        modifyTreeItem(newEntry, newItem);
+
+        totalFiles++;
+    } while (FindNextFile(hFind, &ffd) != 0);
+    FindClose(hFind);
 }
 
 void IterateFile::createTreeUI(const entryObj& parentEntry, QTreeWidgetItem* parentItem) {
     QTreeWidgetItem* newItem = addTreeElement(parentItem);
     modifyTreeItem(parentEntry, newItem);
+
+    newItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator); // Able to collapse trees, even if empty
 
     for(auto& childEntry : parentEntry.children)
         createTreeUI(childEntry, newItem);
